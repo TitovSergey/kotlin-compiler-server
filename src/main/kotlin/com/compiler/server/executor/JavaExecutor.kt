@@ -17,7 +17,7 @@ class JavaExecutor {
 
   companion object {
     const val MAX_OUTPUT_SIZE = 100 * 1024
-    const val EXECUTION_TIMEOUT = 10000L
+    const val EXECUTION_TIMEOUT = 5000L
   }
 
   fun execute(args: List<String>): ProgramOutput {

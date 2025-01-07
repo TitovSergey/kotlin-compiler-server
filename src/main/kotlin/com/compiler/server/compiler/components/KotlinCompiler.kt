@@ -96,7 +96,9 @@ class KotlinCompiler(
         "-cp", kotlinEnvironment.classpath.joinToString(PATH_SEPARATOR) { it.absolutePath },
         "-module-name", "web-module",
         "-no-stdlib", "-no-reflect",
-        "-progressive",
+//        "-progressive",
+        "-Xrender-internal-diagnostic-names",
+        "-Xreport-all-warnings",
         "-d", outputDir.absolutePathString(),
       ) + kotlinEnvironment.compilerPlugins.map { plugin -> "-Xplugin=${plugin.absolutePath}" }
       K2JVMCompiler().tryCompilation(inputDir, ioFiles, arguments) {

@@ -22,26 +22,35 @@ RUN mkdir -p /build/libs && (cd /build/libs;  jar -xf /kotlin-compiler-server/bu
 
 FROM amazoncorretto:17
 
-RUN mkdir /kotlin-compiler-server
-WORKDIR /kotlin-compiler-server
+RUN yum update -y && \
+    yum install -y shadow-utils && \
+    yum clean all
 
-COPY --from=build /build/libs/BOOT-INF/lib /kotlin-compiler-server/lib
-COPY --from=build /build/libs/META-INF /kotlin-compiler-server/META-INF
-COPY --from=build /build/libs/BOOT-INF/classes /kotlin-compiler-server
-COPY --from=build /kotlin-compiler-server/${KOTLIN_LIB} /kotlin-compiler-server/${KOTLIN_LIB}
-COPY --from=build /kotlin-compiler-server/${KOTLIN_LIB_JS} /kotlin-compiler-server/${KOTLIN_LIB_JS}
-COPY --from=build /kotlin-compiler-server/${KOTLIN_LIB_WASM} /kotlin-compiler-server/${KOTLIN_LIB_WASM}
-COPY --from=build /kotlin-compiler-server/${KOTLIN_LIB_COMPOSE_WASM} /kotlin-compiler-server/${KOTLIN_LIB_COMPOSE_WASM}
-COPY --from=build /kotlin-compiler-server/${KOTLIN_COMPOSE_WASM_COMPILER_PLUGINS} /kotlin-compiler-server/${KOTLIN_COMPOSE_WASM_COMPILER_PLUGINS}
-COPY --from=build /kotlin-compiler-server/executor.policy /kotlin-compiler-server/
-COPY --from=build /kotlin-compiler-server/indexes.json /kotlin-compiler-server/
-COPY --from=build /kotlin-compiler-server/indexesJs.json /kotlin-compiler-server/
-COPY --from=build /kotlin-compiler-server/indexesWasm.json /kotlin-compiler-server/
-COPY --from=build /kotlin-compiler-server/indexesComposeWasm.json /kotlin-compiler-server/
+RUN groupadd -g 1000 customgroup
+RUN useradd -m -u 1000 -g root -G customgroup customuser
+
+USER customuser
+
+RUN mkdir /home/customuser/kotlin-compiler-server
+WORKDIR /home/customuser/kotlin-compiler-server
+
+COPY --from=build /build/libs/BOOT-INF/lib /home/customuser/kotlin-compiler-server/lib
+COPY --from=build /build/libs/META-INF /home/customuser/kotlin-compiler-server/META-INF
+COPY --from=build /build/libs/BOOT-INF/classes /home/customuser/kotlin-compiler-server
+COPY --from=build /kotlin-compiler-server/${KOTLIN_LIB} /home/customuser/kotlin-compiler-server/${KOTLIN_LIB}
+COPY --from=build /kotlin-compiler-server/${KOTLIN_LIB_JS} /home/customuser/kotlin-compiler-server/${KOTLIN_LIB_JS}
+COPY --from=build /kotlin-compiler-server/${KOTLIN_LIB_WASM} /home/customuser/kotlin-compiler-server/${KOTLIN_LIB_WASM}
+COPY --from=build /kotlin-compiler-server/${KOTLIN_LIB_COMPOSE_WASM} /home/customuser/kotlin-compiler-server/${KOTLIN_LIB_COMPOSE_WASM}
+COPY --from=build /kotlin-compiler-server/${KOTLIN_COMPOSE_WASM_COMPILER_PLUGINS} /home/customuser/kotlin-compiler-server/${KOTLIN_COMPOSE_WASM_COMPILER_PLUGINS}
+COPY --from=build /kotlin-compiler-server/executor.policy /home/customuser/kotlin-compiler-server/
+COPY --from=build /kotlin-compiler-server/indexes.json /home/customuser/kotlin-compiler-server/
+COPY --from=build /kotlin-compiler-server/indexesJs.json /home/customuser/kotlin-compiler-server/
+COPY --from=build /kotlin-compiler-server/indexesWasm.json /home/customuser/kotlin-compiler-server/
+COPY --from=build /kotlin-compiler-server/indexesComposeWasm.json /home/customuser/kotlin-compiler-server/
 
 ENV PORT=8080
 
 CMD ["java", "-noverify", \
     "-Dserver.port=${PORT}", \
-    "-cp", "/kotlin-compiler-server:/kotlin-compiler-server/lib/*", \
+    "-cp", "/home/customuser/kotlin-compiler-server:/home/customuser/kotlin-compiler-server/lib/*", \
     "com.compiler.server.CompilerApplicationKt"]
